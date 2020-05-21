@@ -20,9 +20,6 @@ jobs:
       run: echo 'Tests are here'
     - name: Running linters
       run: echo 'Linters run here'
-      
-    - name: Provision
-      run: ./tools/provision
     
     - name: Build release tarball
       run: |
