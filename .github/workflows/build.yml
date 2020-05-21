@@ -11,7 +11,8 @@ on :
 jobs:
   ci_part:
     runs-on: ubuntu-18.04
-    
+    env:
+      SHA_SHORT: ${{ echo $GITHUB_SHA | cut -c1-8 }}
     steps:
     - name: Git clone our repository
       uses: actions/checkout@v2
@@ -20,11 +21,15 @@ jobs:
     - name: Running linters
       run: echo 'Linters run here'
       
-    - name: Creating tar ball from git checkout
+    - name: Provision
+      run: ./tools/provision
+    
+    - name: Build release tarball
       run: |
-        cd ..
-        tar -czf zulip-latest.tar.gz ./zulip
-        tar -czf zulip-${{github.sha}}.tar.gz ./zulip
+        ./tools/build-release-tarball $SHA_SHORT
+        cp zulip-server-$SHA_SHORT.tar.gz $HOME/zulip-server-latest.tar.gz
+        cp zulip-server-$SHA_SHORT.tar.gz $HOME/
+        
     
     - name: Configure my AWS Credential
       uses: aws-actions/configure-aws-credentials@v1
@@ -36,8 +41,8 @@ jobs:
     - name: Copy Deployment package to S3 bucket
       run : |
         ls ../
-        aws s3 cp ../zulip-latest.tar.gz  s3://${{ env.S3_BUCKET_NAME }}/
-        aws s3 cp ../zulip-${{github.sha}}.tar.gz  s3://${{ env.S3_BUCKET_NAME }}/
+        aws s3 cp ../zulip-server-latest.tar.gz  s3://${{ env.S3_BUCKET_NAME }}/
+        aws s3 cp ../zulip-$SHA_SHORT.tar.gz  s3://${{ env.S3_BUCKET_NAME }}/
     
     - name: Print CI pipline status
       run : echo "Artifact upload to s3 finished successfuly!"
