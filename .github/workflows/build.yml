@@ -12,7 +12,7 @@ jobs:
   ci_part:
     runs-on: ubuntu-18.04
     env:
-      SHA_SHORT: ${{ echo $GITHUB_SHA | cut -c1-8 }}
+      SHA_SHORT: $(echo $GITHUB_SHA | cut -c1-8 )
     steps:
     - name: Git clone our repository
       uses: actions/checkout@v2
