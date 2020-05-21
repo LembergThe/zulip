@@ -11,8 +11,7 @@ on :
 jobs:
   ci_part:
     runs-on: ubuntu-18.04
-    env:
-      SHA_SHORT: $(echo $GITHUB_SHA | cut -c1-8 )
+    
     steps:
     - name: Git clone our repository
       uses: actions/checkout@v2
@@ -24,8 +23,8 @@ jobs:
     - name: Build release tarball
       run: |
         ./tools/build-release-tarball $SHA_SHORT
-        cp zulip-server-$SHA_SHORT.tar.gz $HOME/zulip-server-latest.tar.gz
-        cp zulip-server-$SHA_SHORT.tar.gz $HOME/
+        cp zulip-server-$(echo $GITHUB_SHA | cut -c1-8 ).tar.gz $HOME/zulip-server-latest.tar.gz
+        cp zulip-server-$(echo $GITHUB_SHA | cut -c1-8 ).tar.gz $HOME/
         
     
     - name: Configure my AWS Credential
