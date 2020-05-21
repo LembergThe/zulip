@@ -22,7 +22,7 @@ jobs:
     
     - name: Build release tarball
       run: |
-        ./tools/build-release-tarball $SHA_SHORT
+        ./tools/build-release-tarball $(echo $GITHUB_SHA | cut -c1-8 )
         cp zulip-server-$(echo $GITHUB_SHA | cut -c1-8 ).tar.gz $HOME/zulip-server-latest.tar.gz
         cp zulip-server-$(echo $GITHUB_SHA | cut -c1-8 ).tar.gz $HOME/
         
