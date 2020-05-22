@@ -108,9 +108,11 @@ aliases:
         sudo apt-get install -y moreutils
 
         mispipe ./tools/ci/production-build ts
-
-        ./tools/build-release-tarball $CIRCLE_BRANCH
-        mv /tmp/tmp.*/zulip-server-$CIRCLE_BRANCH.tar.gz /tmp/
+        
+        git_sha_short=$(echo $CIRCLE_SHA1 | cut -c1-7)
+        ./tools/build-release-tarball $git_sha_short
+        echo 'Moving to /tmp'
+        mv /tmp/tmp.*/zulip-server-$git_sha_short.tar.gz /tmp/
 
   - &production_extract_tarball
     run:
@@ -132,9 +134,10 @@ aliases:
     run:
       name: uplaod release tarball to s3
       command: |
-        aws s3 cp /tmp/zulip-server-$CIRCLE_BRANCH.tar.gz s3://$S3_BUCKET_NAME/zulip-server-latest.tar.gz
-        aws s3 cp /tmp/zulip-server-$CIRCLE_BRANCH.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$CIRCLE_BRANCH.tar.gz
-        aws s3 cp /tmp/zulip-server-$CIRCLE_BRANCH.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$(echo $CIRCLE_SHA1 | cut -c1-7).tar.gz
+        git_sha_short=$(echo $CIRCLE_SHA1 | cut -c1-7)
+        aws s3 cp /tmp/zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-latest.tar.gz
+        aws s3 cp /tmp/zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$CIRCLE_BRANCH.tar.gz
+        aws s3 cp /tmp/zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$git_sha_short.tar.gz
 
   - &install_production
     run:
@@ -281,8 +284,7 @@ jobs:
           # Must be relative path from root
           paths:
             - zulip-server-test.tar.gz
-            - zulip-server-$CIRCLE_BRANCH.tar.gz
-            - success-http-headers.txt
+            - zulip-server-$(echo $CIRCLE_SHA1 | cut -c1-7).tar.gz
             - production-install
             - production
             - production-extract-tarball
