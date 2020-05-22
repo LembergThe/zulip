@@ -108,11 +108,6 @@ aliases:
         sudo apt-get install -y moreutils
 
         mispipe ./tools/ci/production-build ts
-        
-        git_sha_short=$(echo $CIRCLE_SHA1 | cut -c1-7)
-        ./tools/build-release-tarball $git_sha_short
-        echo 'Moving to /tmp'
-        mv /tmp/tmp.*/zulip-server-$git_sha_short.tar.gz /tmp/
 
   - &production_extract_tarball
     run:
@@ -135,9 +130,18 @@ aliases:
       name: uplaod release tarball to s3
       command: |
         git_sha_short=$(echo $CIRCLE_SHA1 | cut -c1-7)
-        aws s3 cp /tmp/zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-latest.tar.gz
-        aws s3 cp /tmp/zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$CIRCLE_BRANCH.tar.gz
-        aws s3 cp /tmp/zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$git_sha_short.tar.gz
+        tar -xf /tmp/zulip-server-test.tar.gz
+        cp -r zulip-server-test zulip-server-latest
+        cp -r zulip-server-test zulip-server-$CIRCLE_BRANCH
+        cp -r zulip-server-test zulip-server-$git_sha_short
+
+        tar -cf zulip-server-latest.tar.gz zulip-server-latest
+        tar -cf zulip-server-$CIRCLE_BRANCH.tar.gz zulip-server-$CIRCLE_BRANCH
+        tar -cf zulip-server-$git_sha_short.tar.gz zulip-server-$git_sha_short
+
+        aws s3 cp zulip-server-latest.tar.gz s3://$S3_BUCKET_NAME/zulip-server-latest.tar.gz
+        aws s3 cp zulip-server-$CIRCLE_BRANCH.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$CIRCLE_BRANCH.tar.gz
+        aws s3 cp zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$git_sha_short.tar.gz
 
   - &install_production
     run:
@@ -284,7 +288,6 @@ jobs:
           # Must be relative path from root
           paths:
             - zulip-server-test.tar.gz
-            - zulip-server-$(echo $CIRCLE_SHA1 | cut -c1-7).tar.gz
             - production-install
             - production
             - production-extract-tarball
@@ -309,6 +312,15 @@ jobs:
       - *restore_cache_package_json
       - *install_production
       - *save_cache_package_json
+      - persist_to_workspace:
+        # Must be an absolute path,
+        # or relative path from working_directory.
+        # This is a directory on the container which is
+        # taken to be the root directory of the workspace.
+      root: /tmp
+      # Must be relative path from root
+      paths:
+          - zulip-server-$(echo $CIRCLE_SHA1 | cut -c1-7).tar.gz
 
   "upload-artifact-to-s3":
     docker:
