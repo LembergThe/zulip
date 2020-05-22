@@ -118,7 +118,7 @@ aliases:
       sudo apt-get install -y moreutils
 
       mispipe /tmp/production-extract-tarball ts
-  
+
   - &install_aws_cli
     run:
       name: Install AWS CLI
