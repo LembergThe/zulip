@@ -303,6 +303,21 @@ jobs:
       - *restore_cache_package_json
       - *install_production
       - *save_cache_package_json
+
+  "upload-artifact-to-s3":
+    docker:
+        # This is built from tools/circleci/images/bionic/Dockerfile .
+        # Bionic ships with Python 3.6.
+        - image: amanagr/circleci:bionic-python-2.test
+
+    working_directory: ~/zulip
+
+    steps:
+      # Contains the built tarball from bionic-production-build-python3.6 job
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: /tmp
+      
       - *install_aws_cli
       - *upload_release_tarball_to_s3
 
@@ -338,6 +353,12 @@ workflows:
       - "bionic-production-install-python3.6":
             requires:
                 - "bionic-production-build-python3.6"
+      - "upload-artifact-to-s3":
+            requires:
+              - "bionic-backend-frontend-python3.6"
+              - "bionic-production-install-python3.6"
+              - "focal-backend-python3.8"
+              - "xenial-legacy"
       # - "focal-production-install-python3.8":
       #       requires:
       #           - "bionic-production-build-python3.6"
