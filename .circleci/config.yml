@@ -300,7 +300,6 @@ jobs:
       - *create_cache_directories
       - *do_bionic_hack
       - *production_extract_tarball
-      - *build_release_tarball
       - *restore_cache_package_json
       - *install_production
       - *save_cache_package_json
