@@ -118,6 +118,20 @@ aliases:
       sudo apt-get install -y moreutils
 
       mispipe /tmp/production-extract-tarball ts
+  
+  - &install_aws_cli
+    run:
+      name: Install AWS CLI
+      command:
+        sudo apt-get install awscli
+
+  - &upload_release_tarball_to_s3
+    run:
+      name: uplaod release tarball to s3
+      command: |
+        aws s3 cp /tmp/zulip-server-test.tar.gz s3://$S3_BUCKET_NAME/zulip-server-latest.tar.gz
+        aws s3 cp /tmp/zulip-server-test.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$CIRCLE_BRANCH.tar.gz
+        aws s3 cp /tmp/zulip-server-test.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$(echo $CIRCLE_SHA1 | cut -c1-7).tar.gz
 
   - &install_production
     run:
@@ -286,6 +300,7 @@ jobs:
       - *create_cache_directories
       - *do_bionic_hack
       - *production_extract_tarball
+      - *build_release_tarball
       - *restore_cache_package_json
       - *install_production
       - *save_cache_package_json
@@ -310,15 +325,17 @@ jobs:
       - *restore_cache_package_json
       - *install_production
       - *save_cache_package_json
+      - *install_aws_cli
+      - *upload_release_tarball_to_s3
 
 workflows:
   version: 2
   build:
     jobs:
-      - "bionic-backend-frontend-python3.6"
+      # - "bionic-backend-frontend-python3.6"
       - "bionic-production-build-python3.6"
-      - "focal-backend-python3.8"
-      - "xenial-legacy"
+      # - "focal-backend-python3.8"
+      # - "xenial-legacy"
       - "bionic-production-install-python3.6":
             requires:
                 - "bionic-production-build-python3.6"
