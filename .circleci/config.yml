@@ -288,6 +288,7 @@ jobs:
           # Must be relative path from root
           paths:
             - zulip-server-test.tar.gz
+            - success-http-headers.txt
             - production-install
             - production
             - production-extract-tarball
@@ -312,15 +313,6 @@ jobs:
       - *restore_cache_package_json
       - *install_production
       - *save_cache_package_json
-      - persist_to_workspace:
-        # Must be an absolute path,
-        # or relative path from working_directory.
-        # This is a directory on the container which is
-        # taken to be the root directory of the workspace.
-      root: /tmp
-      # Must be relative path from root
-      paths:
-          - zulip-server-$(echo $CIRCLE_SHA1 | cut -c1-7).tar.gz
 
   "upload-artifact-to-s3":
     docker:
