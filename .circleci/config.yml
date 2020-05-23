@@ -366,6 +366,9 @@ workflows:
       - "upload-artifact-to-s3":
             requires:
               - "bionic-production-build-python3.6"
+              - "bionic-backend-frontend-python3.6"
+              - "focal-backend-python3.8"
+              - "xenial-legacy"
       # - "focal-production-install-python3.8":
       #       requires:
       #           - "bionic-production-build-python3.6"
