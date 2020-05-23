@@ -166,10 +166,10 @@ def generate_secrets(development: bool = False) -> None:
     # * zulip_org_id only needs to be unique, so we use a UUID.
     if need_secret('zulip_org_key'):
         add_secret('zulip_org_key', random_string(64))
-    if need_secret('zulip_org_id'):
+    if need_secret('zulip_org_id'):x
         add_secret('zulip_org_id', str(uuid.uuid4()))
 
-    if need_secret('postgres_password'):
+    if need_secret('postgres_password') and os.getenv('REMOTE_POSTGRES_PASSWORD'):
         add_secret('postgres_password', os.getenv('REMOTE_POSTGRES_PASSWORD'))
 
     if len(lines) == 0:
