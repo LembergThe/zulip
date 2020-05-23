@@ -1,9 +1,9 @@
 from typing import Any, Dict, Optional, Tuple
 import os
 
-REMOTE_POSTGRES_HOST = os.environ['REMOTE_POSTGRES_HOST']
-REMOTE_POSTGRES_PORT = os.environ['REMOTE_POSTGRES_PORT']
-REMOTE_POSTGRES_SSLMODE = os.environ['REMOTE_POSTGRES_SSLMODE']
+REMOTE_POSTGRES_HOST = os.getenv['REMOTE_POSTGRES_HOST']
+REMOTE_POSTGRES_PORT = os.getenv['REMOTE_POSTGRES_PORT']
+REMOTE_POSTGRES_SSLMODE = os.getenv['REMOTE_POSTGRES_SSLMODE']
 
 ################################################################
 # Zulip Server settings.

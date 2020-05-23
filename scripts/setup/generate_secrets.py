@@ -168,6 +168,9 @@ def generate_secrets(development: bool = False) -> None:
         add_secret('zulip_org_key', random_string(64))
     if need_secret('zulip_org_id'):
         add_secret('zulip_org_id', str(uuid.uuid4()))
+    
+    if need_secret('postgres_password'):
+        add_secret('postgres_password', os.getenv('REMOTE_POSTGRES_PASSWORD'))
 
     if len(lines) == 0:
         print("generate_secrets: No new secrets to generate.")
