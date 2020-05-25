@@ -119,6 +119,30 @@ aliases:
 
       mispipe /tmp/production-extract-tarball ts
 
+  - &install_aws_cli
+    run:
+      name: Install AWS CLI
+      command:
+        sudo apt-get install awscli
+
+  - &upload_release_tarball_to_s3
+    run:
+      name: uplaod release tarball to s3
+      command: |
+        git_sha_short=$(echo $CIRCLE_SHA1 | cut -c1-7)
+        tar -xf /tmp/zulip-server-test.tar.gz
+        cp -r zulip-server-test zulip-server-latest
+        cp -r zulip-server-test zulip-server-$CIRCLE_BRANCH
+        cp -r zulip-server-test zulip-server-$git_sha_short
+
+        tar -cf zulip-server-latest.tar.gz zulip-server-latest
+        tar -cf zulip-server-$CIRCLE_BRANCH.tar.gz zulip-server-$CIRCLE_BRANCH
+        tar -cf zulip-server-$git_sha_short.tar.gz zulip-server-$git_sha_short
+
+        aws s3 cp zulip-server-latest.tar.gz s3://$S3_BUCKET_NAME/zulip-server-latest.tar.gz
+        aws s3 cp zulip-server-$CIRCLE_BRANCH.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$CIRCLE_BRANCH.tar.gz
+        aws s3 cp zulip-server-$git_sha_short.tar.gz s3://$S3_BUCKET_NAME/zulip-server-$git_sha_short.tar.gz
+
   - &install_production
     run:
      name: install production
@@ -290,6 +314,23 @@ jobs:
       - *install_production
       - *save_cache_package_json
 
+  "upload-artifact-to-s3":
+    docker:
+        # This is built from tools/circleci/images/bionic/Dockerfile .
+        # Bionic ships with Python 3.6.
+        - image: amanagr/circleci:bionic-python-2.test
+
+    working_directory: ~/zulip
+
+    steps:
+      # Contains the built tarball from bionic-production-build-python3.6 job
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: /tmp
+
+      - *install_aws_cli
+      - *upload_release_tarball_to_s3
+
   "focal-production-install-python3.8":
     docker:
         # This is built from tools/circleci/images/focal/Dockerfile.
@@ -322,6 +363,12 @@ workflows:
       - "bionic-production-install-python3.6":
             requires:
                 - "bionic-production-build-python3.6"
+      - "upload-artifact-to-s3":
+            requires:
+              - "bionic-production-build-python3.6"
+              - "bionic-backend-frontend-python3.6"
+              - "focal-backend-python3.8"
+              - "xenial-legacy"
       # - "focal-production-install-python3.8":
       #       requires:
       #           - "bionic-production-build-python3.6"
